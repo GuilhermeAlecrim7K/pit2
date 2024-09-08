@@ -20,6 +20,7 @@ app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
+app.MapGet("/", () => "PIT II API.");
 app.MapControllers();
 
 app.Run();
