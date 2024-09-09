@@ -2,5 +2,8 @@
 
 GET {{WebApi_HostAddress}}/
 Accept: application/json
+###
 
+GET {{WebApi_HostAddress}}/products
+Accept: application/json
 ###
