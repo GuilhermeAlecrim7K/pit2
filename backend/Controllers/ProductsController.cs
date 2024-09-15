@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
+using WebApi.Data;
 using WebApi.Models;
 
 namespace WebApi.Controllers;
@@ -8,29 +10,22 @@ namespace WebApi.Controllers;
 [Route("[controller]")]
 public class ProductsController : ControllerBase
 {
-    [HttpGet]
-    public ActionResult<List<Product>> GetAll()
+    private readonly DataContext _context;
+    public ProductsController(DataContext context)
     {
-        List<Product> products = [
-            new ()
-            {
-                Id = Guid.NewGuid(),
-                Name = "Chocolate Cupcake",
-                IsActive = true,
-                Price = 39.8m,
-                CreatedAt = new(2023, 8, 19, 12, 14, 58, 947),
-                LastUpdated = new(2023, 8, 19, 12, 14, 58, 947),
-            },
-            new ()
-            {
-                Id = Guid.NewGuid(),
-                Name = "Strawberry Cupcake",
-                IsActive = true,
-                Price = 53.32m,
-                CreatedAt = new(2023, 8, 20, 14, 7, 21, 54),
-                LastUpdated = new(2024, 1, 23, 9, 15, 23, 50),
-            }
-        ];
+        _context = context;
+    }
+    [HttpGet]
+    public async Task<ActionResult<List<Product>>> GetAll()
+    {
+        List<Product> products = await _context.Products.ToListAsync();
         return Ok(products);
+    }
+    [HttpGet]
+    [Route("{id}")]
+    public async Task<ActionResult<Product>> Get(Guid id)
+    {
+        Product? product = await _context.Products.FindAsync(id);
+        return product is null ? NotFound() : Ok(product);
     }
 }
