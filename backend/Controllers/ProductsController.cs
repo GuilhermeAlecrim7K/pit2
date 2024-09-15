@@ -23,9 +23,29 @@ public class ProductsController : ControllerBase
     }
     [HttpGet]
     [Route("{id}")]
-    public async Task<ActionResult<Product>> Get(Guid id)
+    public async Task<ActionResult<Product>> GetProductById(Guid id)
     {
         Product? product = await _context.Products.FindAsync(id);
         return product is null ? NotFound() : Ok(product);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Post(Product product)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+        var dbProduct = new Product()
+        {
+            Id = new Guid(),
+            CreatedAt = DateTime.UtcNow,
+            Description = product.Description,
+            IsActive = product.IsActive,
+            Name = product.Name,
+            Price = product.Price,
+        };
+        dbProduct.LastUpdated = dbProduct.CreatedAt;
+        _context.Products.Add(dbProduct);
+        await _context.SaveChangesAsync();
+        return CreatedAtAction(nameof(GetProductById), new { id = dbProduct.Id }, dbProduct);
     }
 }
