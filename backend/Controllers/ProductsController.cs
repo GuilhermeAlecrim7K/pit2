@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,9 +18,27 @@ public class ProductsController : ControllerBase
         _context = context;
     }
     [HttpGet]
-    public async Task<ActionResult<List<Product>>> GetAll()
+    public async Task<ActionResult<List<Product>>> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
     {
-        List<Product> products = await _context.Products.ToListAsync();
+        if (pageNumber < 1) pageNumber = 1;
+        if (pageSize < 1) pageSize = 10;
+
+        var totalRecords = await _context.Products.CountAsync();
+        List<Product> products =
+            await _context.Products
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+        var totalPages = (int)Math.Ceiling(totalRecords / (double)pageSize);
+
+        var paginationMetadata = new
+        {
+            totalRecords,
+            totalPages,
+            currentPage = pageNumber,
+            pageSize
+        };
+        Response.Headers["X-Pagination"] = JsonSerializer.Serialize(paginationMetadata);
         return Ok(products);
     }
     [HttpGet]
